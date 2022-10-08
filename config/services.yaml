@@ -1,0 +1,68 @@
+parameters:
+    s3url: '%env(S3_URL)%'
+    stripeKey: '%env(STRIPE_SECRET_KEY)%'
+    appUrl: '%env(APP_URL)%'
+    sqsUrl: '%env(SQS_URL)%'
+    emailConfig:
+        smtp:
+            host: '%env(EMAIL_HOST)%'
+            port: '%env(EMAIL_PORT)%'
+        name: '%env(EMAIL_NAME)%'
+        username: '%env(EMAIL_USERNAME)%'
+        password: '%env(EMAIL_PASSWORD)%'
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+    
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+    App\EventListener\ExceptionListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+
+    App\EventListener\AuthenticationFailureListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_failure, method: onAuthenticationFailureResponse }
+
+    App\EventListener\AuthenticationSuccessListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
+
+    App\EventListener\JWTInvalidListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_invalid, method: onJWTInvalid }
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_not_found, method: onJWTNotFound }
+
+    Gedmo\SoftDeleteable\SoftDeleteableListener:
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }
+        calls:
+            - [ setAnnotationReader, [ '@annotation_reader' ] ]
+    Aws\S3\S3Client:
+        arguments:
+            -   version: '%env(S3_BUCKET_VERSION)%'
+                region: '%env(S3_BUCKET_REGION)%'
+                credentials:
+                    key: '%env(AWS_KEY_ID)%'
+                    secret: '%env(AWS_SECRET)%'
+    Aws\Sqs\SqsClient:
+        arguments:
+            -   version: 'latest'
+                region: 'ap-southeast-1'
+                credentials:
+                    key: '%env(AWS_KEY_ID)%'
+                    secret: '%env(AWS_SECRET)%'
+    App\Manager\FileManager:
+        arguments:
+            $targetDirectory: '%kernel.project_dir%/public/upload/image/'
+            $bucketName: '%env(S3_BUCKET_NAME)%'
+    App\Transformer\ImageTransformer:
+        arguments:
+            $s3Url: '%env(S3_URL)%'
