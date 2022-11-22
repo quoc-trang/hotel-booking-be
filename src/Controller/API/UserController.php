@@ -2,6 +2,7 @@
 
 namespace App\Controller\API;
 
+use App\Mapping\DisableUserMapper;
 use App\Mapping\UserRegisterRequestUserMapper;
 use App\Repository\UserRepository;
 use App\Request\User\UserRegisterRequest;
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UserRegisterController extends AbstractController
+class UserController extends AbstractController
 {
     use JsonResponseTrait;
 
@@ -31,13 +32,14 @@ class UserRegisterController extends AbstractController
 
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(
-        UserRegisterRequest $userRegisterRequest,
-        UserRepository $userRepository,
-        UserTransformer $userTransformer,
+        UserRegisterRequest           $userRegisterRequest,
+        UserRepository                $userRepository,
+        UserTransformer               $userTransformer,
         UserRegisterRequestUserMapper $mapper,
-        Request $request,
-        JWTTokenManagerInterface $JWTTokenManager,
-    ): JsonResponse {
+        Request                       $request,
+        JWTTokenManagerInterface      $JWTTokenManager,
+    ): JsonResponse
+    {
         $jsonRequest = json_decode($request->getContent(), true);
         $userRegisterRequest->fromArray($jsonRequest);
         if ($userRepository->findOneBy(['email' => $userRegisterRequest->getEmail()])) {
@@ -54,5 +56,43 @@ class UserRegisterController extends AbstractController
         $userResult['token'] = $token;
 
         return $this->success($userResult);
+    }
+
+    #[Route('/users', name: 'register', methods: ['GET'])]
+    public function getAll(
+        UserRepository  $userRepository,
+        UserTransformer $userTransformer
+    ): JsonResponse
+    {
+        $data = [];
+        $users = $userRepository->findAll();
+        foreach ($users as $user) {
+            $user = $userTransformer->toArray($user);
+            $data[] = $user;
+        }
+
+        return $this->success($data);
+    }
+
+    #[Route('/users/{id}', name: 'register', methods: ['LOCK'])]
+    public function disable(
+        $id,
+        UserRepository  $userRepository,
+        UserTransformer $userTransformer,
+        DisableUserMapper $mapper
+    ): JsonResponse
+    {
+         $user = $userRepository->find($id);
+
+         if ($user->isDiabled()){
+             return $this->error('Disabled the user already');
+         }
+
+         $userDisable = $mapper->mapping($user);
+         $userRepository->save($userDisable);
+
+        return $this->success([
+            'message' => 'user has been disabled'
+        ]);
     }
 }

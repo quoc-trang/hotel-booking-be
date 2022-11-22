@@ -54,6 +54,9 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private $bookings;
 
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private $diabled;
+
     public function __construct()
     {
         $now = new DateTime('now');
@@ -239,6 +242,18 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
                 $booking->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isDiabled(): ?bool
+    {
+        return $this->diabled;
+    }
+
+    public function setDiabled(?bool $diabled): self
+    {
+        $this->diabled = $diabled;
 
         return $this;
     }
