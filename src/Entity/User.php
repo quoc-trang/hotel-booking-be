@@ -54,8 +54,8 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private $bookings;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private $diabled;
+    #[ORM\Column(type: 'boolean', nullable: false)]
+    private $disabled = false;
 
     public function __construct()
     {
@@ -246,15 +246,19 @@ class User extends BaseEntity implements UserInterface, PasswordAuthenticatedUse
         return $this;
     }
 
-    public function isDiabled(): ?bool
+    /**
+     * @return bool
+     */
+    public function isDisabled(): bool
     {
-        return $this->diabled;
+        return $this->disabled;
     }
 
-    public function setDiabled(?bool $diabled): self
+    /**
+     * @param bool $disabled
+     */
+    public function setDisabled(bool $disabled): void
     {
-        $this->diabled = $diabled;
-
-        return $this;
+        $this->disabled = $disabled;
     }
 }

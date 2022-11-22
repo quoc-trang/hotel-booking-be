@@ -58,7 +58,7 @@ class UserController extends AbstractController
         return $this->success($userResult);
     }
 
-    #[Route('/users', name: 'register', methods: ['GET'])]
+    #[Route('/users', name: 'get_all', methods: ['GET'])]
     public function getAll(
         UserRepository  $userRepository,
         UserTransformer $userTransformer
@@ -74,42 +74,59 @@ class UserController extends AbstractController
         return $this->success($data);
     }
 
-    #[Route('/users/{id}', name: 'register', methods: ['LOCK'])]
+    #[Route('/users/{id}', name: 'get_by_id', methods: ['GET'])]
+    public function getById(
+        $id,
+        UserRepository $userRepository,
+        UserTransformer $userTransformer,
+    )
+    {
+        $user = $userRepository->find($id);
+        if (empty($user)) {
+            return $this->error("can not find user with the id $id");
+        }
+
+        $user = $userTransformer->toArray($user);
+
+        return $this->success($user);
+    }
+
+    #[Route('/users/{id}', name: 'disable', methods: ['LOCK'])]
     public function disable(
         $id,
-        UserRepository  $userRepository,
+        UserRepository $userRepository,
         DisableUserMapper $mapper
     ): JsonResponse
     {
-         $user = $userRepository->find($id);
+        $user = $userRepository->find($id);
 
-         if ($user->isDiabled()){
-             return $this->error('disabled user already');
-         }
+        if ($user->isDisabled()) {
+            return $this->error('disabled user already');
+        }
 
-         $userDisable = $mapper->disable($user);
-         $userRepository->save($userDisable);
+        $userDisable = $mapper->disable($user);
+        $userRepository->save($userDisable);
 
         return $this->success([
             'message' => 'user has been disabled'
         ]);
     }
-    
-    #[Route('/users/{id}', name: 'register', methods: ['UNLOCK'])]
+
+    #[Route('/users/{id}', name: 'un_disable', methods: ['UNLOCK'])]
     public function unDisable(
         $id,
-        UserRepository  $userRepository,
+        UserRepository $userRepository,
         DisableUserMapper $mapper
     ): JsonResponse
     {
-         $user = $userRepository->find($id);
+        $user = $userRepository->find($id);
 
-         if (!$user->isDiabled()){
-             return $this->error('user is not disabled yet');
-         }
+        if (!$user->isDisabled()) {
+            return $this->error('user is not disabled yet');
+        }
 
-         $userDisable = $mapper->unDisable($user);
-         $userRepository->save($userDisable);
+        $userDisable = $mapper->unDisable($user);
+        $userRepository->save($userDisable);
 
         return $this->success([
             'message' => 'user has been un-disabled'

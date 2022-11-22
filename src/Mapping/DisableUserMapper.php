@@ -12,14 +12,14 @@ class DisableUserMapper
 {
     public function disable(User $user)
     {
-        $user->setDiabled(true);
+        $user->setDisabled(true);
 
         return $user;
     }
 
     public function unDisable(User $user)
     {
-        $user->setDiabled(false);
+        $user->setDisabled(false);
 
         return $user;
     }

@@ -12,6 +12,7 @@ class UserTransformer extends BaseTransformer
     {
         $userResult = $this->transform($user, static::ALLOW);
         $userResult['role'] = $user->getRoles()[0];
+        $userResult['disabled'] = $user->isdisabled();
 
         return $userResult;
     }
