@@ -78,21 +78,41 @@ class UserController extends AbstractController
     public function disable(
         $id,
         UserRepository  $userRepository,
-        UserTransformer $userTransformer,
         DisableUserMapper $mapper
     ): JsonResponse
     {
          $user = $userRepository->find($id);
 
          if ($user->isDiabled()){
-             return $this->error('Disabled the user already');
+             return $this->error('disabled user already');
          }
 
-         $userDisable = $mapper->mapping($user);
+         $userDisable = $mapper->disable($user);
          $userRepository->save($userDisable);
 
         return $this->success([
             'message' => 'user has been disabled'
+        ]);
+    }
+    
+    #[Route('/users/{id}', name: 'register', methods: ['UNLOCK'])]
+    public function unDisable(
+        $id,
+        UserRepository  $userRepository,
+        DisableUserMapper $mapper
+    ): JsonResponse
+    {
+         $user = $userRepository->find($id);
+
+         if (!$user->isDiabled()){
+             return $this->error('user is not disabled yet');
+         }
+
+         $userDisable = $mapper->unDisable($user);
+         $userRepository->save($userDisable);
+
+        return $this->success([
+            'message' => 'user has been un-disabled'
         ]);
     }
 }

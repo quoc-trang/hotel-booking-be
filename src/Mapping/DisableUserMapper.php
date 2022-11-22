@@ -10,9 +10,16 @@ use TheSeer\Tokenizer\NamespaceUriException;
 
 class DisableUserMapper
 {
-    public function mapping(User $user)
+    public function disable(User $user)
     {
         $user->setDiabled(true);
+
+        return $user;
+    }
+
+    public function unDisable(User $user)
+    {
+        $user->setDiabled(false);
 
         return $user;
     }
