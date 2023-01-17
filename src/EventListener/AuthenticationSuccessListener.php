@@ -24,18 +24,24 @@ class AuthenticationSuccessListener
          * @var User $user
          */
         $user = $event->getUser();
-        $token = $event->getData()['token'];
+        if($user->isDisabled()){
+            $data = [
+                'status' => 'error',
+                'message' => 'User is disabled',
+            ];
+        } else{
+            $token = $event->getData()['token'];
+            $userJson = $this->userTransformer->toArray($user);
+            $userJson['token'] = $token;
+            if ($user->isHotel()) {
+                $userJson['hotelId'] = $user->getHotel()->getId() ?? null;
+            }
+            $data = [
+                'status' => 'success',
+                'data' => $userJson,
+            ];
 
-        $userJson = $this->userTransformer->toArray($user);
-        $userJson['token'] = $token;
-        if ($user->isHotel()) {
-            $userJson['hotelId'] = $user->getHotel()->getId() ?? null;
         }
-        $data = [
-            'status' => 'success',
-            'data' => $userJson,
-        ];
-
         $event->setData($data);
     }
 }
