@@ -91,7 +91,7 @@ class UserController extends AbstractController
         return $this->success($user);
     }
 
-    #[Route('/users/{id}', name: 'disable', methods: ['LOCK'])]
+    #[Route('/users/disable/{id}', name: 'disable', methods: ['POST'])]
     public function disable(
         $id,
         UserRepository $userRepository,
@@ -99,7 +99,6 @@ class UserController extends AbstractController
     ): JsonResponse
     {
         $user = $userRepository->find($id);
-
         if ($user->isDisabled()) {
             return $this->error('disabled user already');
         }
@@ -112,7 +111,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/users/{id}', name: 'un_disable', methods: ['UNLOCK'])]
+    #[Route('/users/enable/{id}', name: 'un_disable', methods: ['POST'])]
     public function unDisable(
         $id,
         UserRepository $userRepository,
